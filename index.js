@@ -1,3 +1,5 @@
+require('dotenv').config();// ←追加！
+
 const { Client, GatewayIntentBits } = require('discord.js');
 const client = new Client({
   intents: [
@@ -8,7 +10,7 @@ const client = new Client({
 });
 
 // トークンをここに入れる
-client.login('process.env.TOKEN');
+client.login(process.env.TOKEN);
 
 // ログイン時の確認メッセージ
 client.on('ready', () => {
