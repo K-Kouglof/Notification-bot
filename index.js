@@ -36,3 +36,9 @@ client.on('messageCreate', (message) => {
 
 console.log('トークン:', process.env.TOKEN ? 'あり' : 'なし');
 
+// スリープ防止のために10分ごとにログ出力
+setInterval(() => {
+  console.log('Bot is still running...');
+}, 10 * 60 * 1000); // 10分ごと
+
+
