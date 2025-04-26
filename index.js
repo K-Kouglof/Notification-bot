@@ -17,6 +17,13 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
   ],
+  presence: {
+    status: 'online', // ←追加！
+    activities: [{
+      name: '通知待機中🔔', // 好きな文章でOK
+      type: 'WATCHING',    // PLAYING, LISTENING, WATCHING, STREAMING から選べる
+    }],
+  },
 });
 
 // トークンをここに入れる
