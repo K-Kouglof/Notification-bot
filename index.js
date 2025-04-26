@@ -1,3 +1,5 @@
+require('dotenv').config();// ←追加！
+
 const { Client, GatewayIntentBits } = require('discord.js');
 const client = new Client({
   intents: [
@@ -8,7 +10,7 @@ const client = new Client({
 });
 
 // トークンをここに入れる
-client.login('process.env.TOKEN');
+client.login(process.env.TOKEN);
 
 // ログイン時の確認メッセージ
 client.on('ready', () => {
@@ -28,6 +30,9 @@ client.on('messageCreate', (message) => {
 
   const roleId = CHANNEL_ROLE_MAP[message.channel.id];
   if (roleId) {
-    message.channel.send(`<@&${roleId}> 募集が来ていますよ〜！`);
+    message.channel.send(`<@&${roleId}> 通知が来ているよ〜！`);
   }
 });
+
+console.log('トークン:', process.env.TOKEN ? 'あり' : 'なし');
+
