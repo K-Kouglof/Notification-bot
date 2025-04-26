@@ -1,6 +1,16 @@
-require('dotenv').config();// ←追加！
+require('dotenv').config(); // ←追加！
 
+const express = require('express');
 const { Client, GatewayIntentBits } = require('discord.js');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ダミーWebサーバー
+app.get('/', (req, res) => res.send('Bot is alive!'));
+app.listen(PORT, () => console.log(`Web server is listening on port ${PORT}`));
+
+// Discord Bot
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -30,7 +40,7 @@ client.on('messageCreate', (message) => {
 
   const roleId = CHANNEL_ROLE_MAP[message.channel.id];
   if (roleId) {
-    message.channel.send(`<@&${roleId}> 通知が来ているよ〜！`);
+    message.channel.send(`<@&${roleId}> が来ているよ〜！`);
   }
 });
 
@@ -40,5 +50,3 @@ console.log('トークン:', process.env.TOKEN ? 'あり' : 'なし');
 setInterval(() => {
   console.log('Bot is still running...');
 }, 10 * 60 * 1000); // 10分ごと
-
-
