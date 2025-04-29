@@ -7,7 +7,7 @@ require('dotenv').config();
 // 📦 必要なライブラリ
 // ==============================
 const express = require('express');
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 
 // ==============================
 // 🌐 ダミーWebサーバー（Renderヘルスチェック用）
@@ -19,7 +19,7 @@ app.get('/', (req, res) => res.send('Bot is alive!'));
 app.listen(PORT, () => console.log(`✅ Web server is listening on port ${PORT}`));
 
 // ==============================
-// 🤖 Discord Botの起動設定
+// 🤖 Discordクライアント設定
 // ==============================
 const client = new Client({
   intents: [
@@ -31,20 +31,22 @@ const client = new Client({
     status: 'online',
     activities: [{
       name: '通知待機中🔔',
-      type: 3, // WATCHING = 3
+      type: 3, // WATCHING
     }],
   },
 });
 
 // ==============================
-// 🔑 トークンチェックしてログイン
+// 🔑 ログイン処理
 // ==============================
-const TOKEN = process.env.TOKEN;
-if (!TOKEN) {
-  console.error('❌ TOKEN環境変数が未設定です！');
-  process.exit(1);
+function loginBot(token) {
+  if (!token) {
+    console.error('❌ TOKEN環境変数が未設定です！');
+    process.exit(1);
+  }
+  client.login(token);
 }
-client.login(TOKEN);
+loginBot(process.env.TOKEN);
 
 // ==============================
 // 🎉 Bot起動時の処理
@@ -54,40 +56,53 @@ client.once('ready', () => {
 });
 
 // ==============================
-// 🔔 チャンネルとロールの対応表
+// 🔔 通知対象チャンネル → ロール対応表
 // ==============================
-const CHANNEL_ROLE_MAP = {
-  '1364116532992413728': '1365148542724739113', // マルチ募集チャンネル → マルチ通知ロール
-  '1364124380111835177': '1365221370258133023', // Q&Aチャンネル → Q&A通知ロール
-  '1363744830966075493': '1365217879947083797', // サーバーお知らせチャンネル → お知らせ通知ロール
-  // 必要ならここに追加！
+const NOTIFY_ROLE_BY_CHANNEL = {
+  '1364116532992413728': '1365148542724739113', // マルチ募集
+  '1364124380111835177': '1365221370258133023', // Q&A
+  '1363744830966075493': '1365217879947083797', // お知らせ
 };
 
 // ==============================
-// 📩 メッセージ受信時の処理
+// 📩 メッセージ受信時の通知処理（埋め込み対応）
 // ==============================
-client.on('messageCreate', (message) => {
-  if (message.author.bot) return; // Botのメッセージは無視
+function notifyRoleIfMapped(message) {
+  if (message.author.bot) return;
 
-  const roleId = CHANNEL_ROLE_MAP[message.channel.id];
-  if (roleId) {
-    message.channel.send({
-      content: `<@&${roleId}> が来ているよ〜！`
-    });
-  }
-});
+  const roleId = NOTIFY_ROLE_BY_CHANNEL[message.channel.id];
+  if (!roleId) return;
+
+  const embed = new EmbedBuilder()
+    .setTitle('🔔 通知が届きました！')
+    .setDescription(`<@&${roleId}> が来ているよ！`)
+    .setColor(0x00BFFF)
+    .setTimestamp()
+ });
+
+  message.channel.send({
+    content: `<@&${roleId}>`, // メンション通知用（Embed内はPingされない）
+    embeds: [embed],
+  });
+}
+
+client.on('messageCreate', notifyRoleIfMapped);
 
 // ==============================
-// ⚡ エラーハンドリング（落ちないBotに強化）
+// ⚡ エラーハンドリング
 // ==============================
-client.on('error', error => console.error('❌ クライアントエラー:', error));
-client.on('shardError', error => console.error('❌ シャードエラー:', error));
-process.on('unhandledRejection', error => console.error('❌ 未処理のPromiseエラー:', error));
-process.on('uncaughtException', error => console.error('❌ 未処理の例外エラー:', error));
+function handleError(type, error) {
+  console.error(`❌ ${type}:`, error);
+}
+
+client.on('error', error => handleError('クライアントエラー', error));
+client.on('shardError', error => handleError('シャードエラー', error));
+process.on('unhandledRejection', error => handleError('未処理のPromiseエラー', error));
+process.on('uncaughtException', error => handleError('未処理の例外エラー', error));
 
 // ==============================
-// ⏰ スリープ防止のため10分ごとにログ出力
+// ⏰ スリープ防止ログ（10分ごと）
 // ==============================
 setInterval(() => {
   console.log('💤 Bot is still running...');
-}, 10 * 60 * 1000); // 10分ごと
+}, 10 * 60 * 1000);
