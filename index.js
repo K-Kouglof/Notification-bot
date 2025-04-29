@@ -77,8 +77,7 @@ function notifyRoleIfMapped(message) {
     .setTitle('🔔 通知が届きました！')
     .setDescription(`<@&${roleId}> が来ているよ！`)
     .setColor(0x00BFFF)
-    .setTimestamp()
- });
+    .setTimestamp();
 
   message.channel.send({
     content: `<@&${roleId}>`, // メンション通知用（Embed内はPingされない）
@@ -100,9 +99,3 @@ client.on('shardError', error => handleError('シャードエラー', error));
 process.on('unhandledRejection', error => handleError('未処理のPromiseエラー', error));
 process.on('uncaughtException', error => handleError('未処理の例外エラー', error));
 
-// ==============================
-// ⏰ スリープ防止ログ（10分ごと）
-// ==============================
-setInterval(() => {
-  console.log('💤 Bot is still running...');
-}, 10 * 60 * 1000);
